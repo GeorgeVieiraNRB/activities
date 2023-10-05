@@ -1,9 +1,5 @@
 #  G.A.M. (Guides_Auto_Manager)
-## calcular o tamanho de uma guia - ok
-## "gravar" tela e salvar localizações do mouse em alguma estrutura de dados
-## selecionar as localizações do mouse relativas as guias
-## mover as guias mais usadas para o canto esquerdo
-## adaptar codigo para servir em qualquer tela
+## "gravar" tela e salvar guias do navegador em alguma estrutura de dados
 ## salvar informações chave em um .txt para uso futuro
 ## acessar de alguma forma as informações do monitor
 ## organizar em termos de Orientação a objetos
@@ -20,90 +16,84 @@ SAFE_COEFICIENT=12
 monitor = get_monitors()[0]
 print(monitor.height)
 
-def current_window():
+one_hour = 1
+one_minute = 1/100
+one_second = 1/1000
+
+def current_guide():
     window = pygetwindow.getActiveWindow()
     window_title= window.title if window != None else ""
-    print("Programa em execução:", window_title)
     return window_title
 initial_window="Visual Studio Code"#window_actual()
 def verify_current_window(window):
-    return window in current_window()     
+    return window in current_guide()     
 def calculate_time(hour=0,min=0,sec=0):
-    return hour*1+min*0.01+sec*0.0001
+    return hour*one_hour+min*one_minute+sec*one_second
 def calculate_now():
     return calculate_time(time.localtime().tm_hour,time.localtime().tm_min,time.localtime().tm_sec)
-def calculate_distance(now_time,end_time,start_location=0):
-    print("1")
-    #web_browser=current_window()
-    #while verify_current_window(initial_window):
-    
-        
-    pyautogui.moveTo(start_location+SAFE_COEFICIENT,SAFE_COEFICIENT)
-    mouse_y_positions=mouse_x_positions=[]
-    
-    #time.sleep(1)
-    while now_time < end_time:
-        now_time=calculate_now() 
-        x1,y1 = pyautogui.position()
-        mouse_x_positions.append(x1)
-        mouse_y_positions.append(y1)
-    mouse_x_positions.sort()
-    min_x=mouse_x_positions[0]
-    max_x=mouse_x_positions[-1]
-    mouse_y_positions.sort()
-    min_y=mouse_x_positions[0]
-    max_y=mouse_x_positions[-1]
-    #time.sleep(1)
-    #while not verify_current_window(initial_window) or verify_current_window(web_browser):
-    #print("a")
-    pyautogui.PAUSE = 1
-    #pyautogui.hotkey("alt","tab")
-    pyautogui.PAUSE = 0.5
-    return max_x-min_x,max_y-min_y
 
-window=current_window()
+window=current_guide()
 if "Visual Studio Code" in window:
     pyautogui.hotkey("alt","tab")
 now = calculate_now()
-pyautogui.alert("A calibração do sistema vai começar, primeiro mova o mouse entre o canto esquerdo da tela e o final do espaço antes da primeira guia")
+print(now)
+guides=[]
+guides_times=[]
+try:
+    browser=current_guide()[current_guide().index("-")+1:].replace(" ","")
+    print(browser)
+except:
+    pass
+while(calculate_now()-now<5*(1/1000)):
+    window=current_guide()
+    if(window not in guides):
+        guides.append(window)
+        guides_times.append(1)
 
-space_before_guide= calculate_distance(now,now+calculate_time(sec=10))[0]+SAFE_COEFICIENT
-print(f'space_before_guide:{space_before_guide}')
-#time.sleep(2)
-pyautogui.alert("Agora mova o mouse entre o começo e o final da primeira guia")
-pyautogui.PAUSE = 0.5
-guide_x_size,guide_y_size = calculate_distance(now,now+calculate_time(sec=20),start_location=100)
-print(f'guide_size:{guide_x_size}')
-#time.sleep(2)
-def clicks_locations():
-    mouse_positions=[] 
-    limit_time = now + calculate_time(sec=5)
-    print(f"now {now} limit_time {limit_time}")
-    print("running...") 
-    while now < limit_time:
-        x,y = pyautogui.position()#coordenadas atuais do mouse
-        mouse_positions.append((x,y))
-        now = calculate_now()
-        #print(f"{x} {y}")
-        #print(f"now {now} limit_time {limit_time}")
-
-    print(f"now {now} limit_time {limit_time}")
-    print(mouse_positions)
-pyautogui.alert("Etapa de organização de guias , não toque no mouse")
-print("running")
-
-pyautogui.PAUSE = 1
-#pyautogui.hotkey("alt","tab")
-
-time.sleep(1)
-#pyautogui.hotkey("alt","tab")
-
-pyautogui.moveTo((guide_x_size//3)+space_before_guide,5)
-#time.sleep(1)
-pyautogui.mouseDown()#segurar
-pyautogui.moveTo(int(guide_x_size*1.2)+space_before_guide,5)
-pyautogui.mouseUp()#soltar 
-#time.sleep(5)
-
+    index=guides.index(window)
+    if(current_guide()!=window):
+        pass
+    guides_times[index]+=1
 pyautogui.alert("O código foi finalizado. Você já pode utilizar o computador!")
 print("ended")
+pyautogui.hotkey("alt","tab")
+print("guias"+str(guides))
+print("tempos"+str(guides_times))
+
+quantidade_guias = len(guides)
+less_used_guides_times=guides[: ]
+less_used_guides_times.sort()
+less_used_guides_times=less_used_guides_times[:quantidade_guias//2]
+less_used_guides=[]
+print(less_used_guides_times)
+for x,y in enumerate(guides):
+    if(guides_times[x] in less_used_guides_times):
+        less_used_guides.append(y)
+print("guias menos usadas"+str(less_used_guides))
+
+# pyautogui.PAUSE = 0.5
+time.sleep(2)
+if "Visual Studio Code" in window:
+    pyautogui.hotkey("alt","tab")
+# Reorganização
+for x in range(quantidade_guias*2):
+    guide=current_guide()
+    pyautogui.PAUSE = 0.5
+    time.sleep(1)
+    if(guide in less_used_guides):
+        pyautogui.hotkey("ctrl","w")
+        print(f'{current_guide} foi deletada')
+    if(x<quantidade_guias):
+        pyautogui.hotkey("ctrl","tab")
+    else:
+        pyautogui.hotkey("ctrl","shift","tab")
+pyautogui.hotkey("alt","tab")
+pyautogui.alert("O código foi finalizado. Você já pode utilizar o computador!")
+print("ended")
+# pyautogui.moveTo(8,5)
+# #time.sleep(1)
+# pyautogui.mouseDown()#segurar
+
+# pyautogui.mouseUp()#soltar 
+# #time.sleep(5)
+
